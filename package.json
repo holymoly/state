@@ -1,6 +1,6 @@
 {
-  "name": "state",
-  "version": "1.0.0",
+  "name": "@holymoly/state",
+  "version": "1.0.2",
   "description": "A simple state model with transition control",
   "main": "state.js",
   "scripts": {

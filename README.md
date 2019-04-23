@@ -3,7 +3,7 @@ A simple state model with transition control
 
 ## Example
 ```
-const State = require('./state');
+const State = require('@holymoly/state');
 
 // states allowed
 var stateModel = [
