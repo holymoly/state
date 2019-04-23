@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: state.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: state.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const EventEmitter = require('events');
+/**
+ * @class
+ * @classdesc Defining a state model which also can handle state transitions
+ * @extends EventEmitter
+ */
+class State extends EventEmitter {
+
+  /**
+   * Create a instance of the state model.
+   * @param {Object} state - contains state definition i.e.
+   * [
+   *  'idle',
+   *  'created',
+   *  'running',
+   *  'completed',
+   *  'hold',
+   *  'aborted',
+   *  'error'
+   * ]
+   * @param {string} stateValue - initial value of state i.e.
+   * 'idle'
+   * @param {Object} options - defining the behavior of the state
+   * @param {Object} options.allowedTransitions - key activates transition check
+   * @param {Array} options.allowedTransitions.transitions - array of allowed state transitions
+   *   [{
+   *     'actualState': 'idle',
+   *     'newState': 'created'
+   *   }, {
+   *     'actualState': 'idle',
+   *     'newState': 'aborted'
+   *   }, {
+   *     actualState: 'created',
+   *     'newState': 'running'
+   *   }, {
+   *     'actualState': 'created',
+   *     'newState': 'aborted'
+   *   }, {
+   *     'actualState': 'running',
+   *     'newState': 'completed'
+   *   }, {
+   *     'actualState': 'running',
+   *     'newState': 'hold'
+   *   }, {
+   *     'actualState': 'running',
+   *     'newState': 'aborted'
+   *   }, {
+   *     'actualState': 'hold',
+   *     'newState': 'running'
+   *   }, {
+   *     'actualState': 'error',
+   *     'newState': '*'
+   *   }, {
+   *     'actualState': '*',
+   *     'newState': 'error'
+   *   }]
+   */
+  constructor(stateModel, stateValue, options) {
+    super();
+    this._stateModel = stateModel;
+    this._actualStateName = undefined;
+    this._options = options;
+    this._checkTransitions = false;
+    this._transitions = undefined;
+
+    if (this._stateModel.includes(stateValue)) {
+      this.setState(stateValue);
+    } else {
+      this.generateError('State not in stateModel');
+    }
+
+    // If options where passed, set parameter accordingly
+    if (this._options) {
+
+      // Check if transitions between state should be validated
+      if (this._options.hasOwnProperty('allowedTransitions')) {
+        this._checkTransitions = true;
+        this._transitions = this._options.allowedTransitions.transitions;
+      }
+    }
+  }
+
+  /**
+   * Change actual state.
+   * @param {String} value - desired state i.e. 'idle'
+   */
+  setState(value) {
+    this._actualStateName = value;
+  }
+
+
+  /**
+   * Verifies if value passed is allowed for a state change
+   * @param {String} value - desired state i.e. 'idle'
+   */
+  setStateValue(value) {
+    // Check if transition should be validated
+    var that = this;
+    // check if the 
+    if (this._stateModel.includes(value)) {
+      if (this._checkTransitions) {
+        // check in transitions if state change is allowed
+        var stateChange = false;
+        this._transitions.forEach(function(transition, i, array) {
+          if (transition.actualState === that._actualStateName &amp;&amp; transition.newState === value) {
+            stateChange = true;
+            console.log('Set state to ' + value);
+            that.setState(value);
+          }
+          if (i === array.length - 1) {
+            //if laste transition was checked call checkStatusChange
+            checkStatusChange();
+          }
+        });
+
+        function checkStatusChange() {
+          if (stateChange) {
+            that.emit('stateChange', {
+              newState: that._actualStateName
+            });
+          } else {
+            var error = new Error('Could not change state to ' + value);
+            error.name = 'noStateChange';
+            error.actState = that._actualStateName;
+            that.generateError(error);
+          }
+
+        }
+      } else {;
+        setState(value);
+      }
+    } else {
+      var error = new Error('State: ' + value + ' not in stateModel');
+      error.name = 'noInStateModel';
+      error.actState = that._actualStateName;
+      this.generateError(error);
+    }
+  }
+
+  /**
+   * Emits 'error event'
+   * @param {Object} err - standard error object containing also actual state
+   */
+  generateError(err) {
+    this.emit('error', err);
+  }
+
+  /**
+   * Returns actual state
+   */
+  getStateValue() {
+    return this._actualStateName;
+  };
+}
+
+module.exports = State;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="State.html">State</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Apr 23 2019 21:05:32 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
